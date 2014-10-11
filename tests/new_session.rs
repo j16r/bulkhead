@@ -3,6 +3,8 @@ extern crate hyper;
 use std::io::Command;
 use std::io::timer::Timer;
 use std::time::duration::Duration;
+use std::io::MemWriter;
+use std::io::util::copy;
 
 use hyper::Url;
 use hyper::client::Request;
@@ -39,8 +41,9 @@ fn new_session_test() {
     Err(err) => fail!("Failed to read response")
   };
 
-  let mut buf = [0u8, ..256];
-  response.read(buf);
+  let mut body = MemWriter::new();
+  copy(&mut response, &mut body);
+  let output = String::from_utf8(body.unwrap()).unwrap();
 
-  assert_eq!(String::from_utf8_lossy(buf).as_slice(), "{\"session\":{}}");
+  assert_eq!(output.as_slice(), "{\"session\":{}}");
 }

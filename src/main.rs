@@ -8,7 +8,7 @@ use router::{Router, Params};
 use iron::status;
 
 fn new_session_handler(_: &mut Request) -> IronResult<Response> {
-  Ok(Response::with(status::Ok, "AUTHZ!"))
+  Ok(Response::with(status::Ok, "{\"session\":{}}"))
 }
 
 fn main() {
