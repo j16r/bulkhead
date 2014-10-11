@@ -25,25 +25,25 @@ fn new_session_test() {
   setup();
 
   let new_session_url = Url::parse("http://localtest.me:3000/sessions").unwrap();
-  let mut request = match Request::post(new_session_url) {
+  let request = match Request::post(new_session_url) {
     Ok(request) => request,
     Err(err) => fail!("Failed to connect to bulkhead on {}", err)
   };
 
   let mut stream = match request.start() {
     Ok(stream) => stream,
-    Err(err) => fail!("Failed to write to request")
+    Err(err) => fail!("Failed to write to request {}", err)
   };
 
   stream.write("{\"session\":{\"username\": \"timmy\", \"password\":\"1234\"}}".as_bytes());
   let mut response = match stream.send() {
     Ok(response) => response,
-    Err(err) => fail!("Failed to read response")
+    Err(err) => fail!("Failed to read response {}", err)
   };
 
   let mut body = MemWriter::new();
   copy(&mut response, &mut body);
   let output = String::from_utf8(body.unwrap()).unwrap();
 
-  assert_eq!(output.as_slice(), "{\"session\":{}}");
+  assert_eq!(output.as_slice(), "{\"session\":{\"id\":1}}");
 }
