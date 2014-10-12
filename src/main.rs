@@ -16,7 +16,7 @@ use time::Timespec;
 
 #[deriving(Decodable, Encodable)]
 pub struct Session  {
-  id: u8
+  id: i32
 }
 
 #[deriving(Decodable, Encodable)]
@@ -46,7 +46,7 @@ fn migrate(conn: &PostgresConnection) {
 }
 
 struct User {
-  id: int,
+  id: i32,
   name: String,
   created_at: Timespec
 }
@@ -58,7 +58,35 @@ struct NewSessionRequest {
 }
 
 fn authenticate_user(new_session_request : &NewSessionRequest) -> Option<User> {
-  //let user = db.prepare("SELECT id, name, created_at FROM users").unwrap();
+  let db = db_connect();
+  let stmt = db.prepare("SELECT
+                          id, name, created_at
+                         FROM users
+                         WHERE name = $1").unwrap();
+  for row in stmt.query(&[&new_session_request.username]).unwrap() {
+    return Some(User {
+      id: row.get(0u),
+      name: row.get(1u),
+      created_at: row.get(2u)
+    })
+  }
+  None
+}
+
+fn create_session(user: &User) -> Option<Session> {
+  let db = db_connect();
+  let stmt = db.execute("INSERT INTO sessions (user_id, created_at)
+                         VALUES($1, now())",
+                        &[&user.id]).unwrap();
+  let stmt = db.prepare("SELECT
+                          id
+                         FROM sessions
+                         WHERE id = lastval()").unwrap();
+  for row in stmt.query([]).unwrap() {
+    return Some(Session {
+      id: row.get(0u),
+    })
+  }
   None
 }
 
@@ -66,11 +94,11 @@ fn new_session_handler(req: &mut Request) -> IronResult<Response> {
   let new_session_request : NewSessionRequest = json::decode(req.body.as_slice()).unwrap();
 
   let user = match authenticate_user(&new_session_request) {
-    Some(_) => (),
+    Some(user) => user,
     None => return Ok(Response::with(status::Unauthorized, "Unauthorized!"))
   };
 
-  let response = SessionResponse{session: Session{id: 1}};
+  let response = SessionResponse{session: create_session(&user).unwrap()};
   Ok(Response::with(status::Ok, json::encode(&response)))
 }
 
