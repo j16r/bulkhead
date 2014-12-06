@@ -4,19 +4,9 @@ name = "bulkhead"
 version = "0.0.1"
 authors = ["John Barker <jebarker@gmail.com>"]
 
-[dependencies.hyper]
+[dependencies]
 
-git = "https://github.com/hyperium/hyper"
-
-[dependencies.iron]
-
-git = "https://github.com/iron/iron.git"
-
-[dependencies.router]
-
-git = "https://github.com/iron/router.git"
-
-[dependencies.postgres]
-
-git = "https://github.com/alexcrichton/rust-postgres"
-branch = "servo-url"
+postgres = "*"
+hyper = "*"
+iron = "*"
+router = "*"
