@@ -6,7 +6,17 @@ authors = ["John Barker <jebarker@gmail.com>"]
 
 [dependencies]
 
-postgres = "*"
 hyper = "*"
 iron = "*"
 router = "*"
+rustc-serialize = "*"
+time = "*"
+
+[dependencies.postgres]
+
+features = ["time"]
+version = "*"
+
+[dependencies.bodyparser]
+
+git = "https://github.com/iron/body-parser.git"
