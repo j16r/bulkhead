@@ -22,7 +22,8 @@ fn setup() -> Context {
 }
 
 fn teardown(context: &mut Context) {
-  context.server.kill();
+  context.server.kill()
+      .unwrap_or_else(|msg| panic!("Failed to shut down bulkhead server: {}", msg));
 }
 
 fn read_to_string(mut r: Response) -> io::Result<String> {
