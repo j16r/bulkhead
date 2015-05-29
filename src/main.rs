@@ -5,8 +5,8 @@ extern crate router;
 extern crate rustc_serialize;
 extern crate time;
 
-use iron::status;
 use iron::prelude::*;
+use iron::status;
 use postgres::{Connection, SslMode};
 use router::Router;
 use rustc_serialize::json;
@@ -49,7 +49,7 @@ struct User {
   created_at: Timespec
 }
 
-#[derive(RustcDecodable, Clone)]
+#[derive(RustcDecodable, Clone, Debug)]
 struct NewSessionRequest {
   username: String,
   password: String
@@ -89,10 +89,10 @@ fn create_session(user: &User) -> Option<Session> {
 }
 
 fn new_session_handler(req: &mut Request) -> IronResult<Response> {
-  let new_session_request = 
+  let new_session_request_option =
       req.get::<bodyparser::Struct<NewSessionRequest>>()
-      .unwrap()
-      .unwrap();
+      .unwrap_or_else(|error| panic!("Invalid request syntax: {:?}", error));
+  let new_session_request = new_session_request_option.unwrap();
 
   let user = match authenticate_user(&new_session_request) {
     Some(user) => user,
@@ -115,7 +115,7 @@ fn main() {
 
   Iron::new(router)
       .http("0.0.0.0:3000")
-      .unwrap_or_else(|error| panic!("Failed to listen {}", error));
+      .unwrap_or_else(|error| panic!("Unable to start server: {}", error));
 
   println!("Bulkhead ready.");
 }

@@ -1,6 +1,7 @@
 extern crate hyper;
 
 use std::io::{self, Read};
+use hyper::header::ContentType;
 use hyper::client::Client;
 use hyper::client::response::Response;
 use std::process::{Command, Child};
@@ -41,7 +42,8 @@ fn new_session_test() {
   let mut client = Client::new();
   let response = client
       .post("http://localtest.me:3000/sessions")
-      .body(r#"{"session":{"username": "timmy", "password":"1234"}}"#.as_bytes())
+      .header(ContentType::json())
+      .body(r#"{"username": "timmy", "password": "1234"}"#.as_bytes())
       .send()
       .unwrap();
 
