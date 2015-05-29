@@ -4,7 +4,7 @@ use std::io::{self, Read};
 use hyper::client::Client;
 use hyper::client::response::Response;
 use std::process::{Command, Child};
-//use std::time::duration::Duration;
+use std::thread::sleep_ms;
 
 struct Context {
   server: Child
@@ -15,7 +15,7 @@ fn setup() -> Context {
     .spawn()
     .unwrap_or_else(|msg| panic!("Failed to launch bulkhead server: {}", msg));
 
-  //Timer::new().unwrap().sleep(Duration::seconds(1));
+  sleep_ms(100);
   println!("bulkhead server running...");
 
   Context {server: server}
