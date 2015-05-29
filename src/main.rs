@@ -89,10 +89,24 @@ fn create_session(user: &User) -> Option<Session> {
 }
 
 fn new_session_handler(req: &mut Request) -> IronResult<Response> {
-  let new_session_request_option =
-      req.get::<bodyparser::Struct<NewSessionRequest>>()
-      .unwrap_or_else(|error| panic!("Invalid request syntax: {:?}", error));
-  let new_session_request = new_session_request_option.unwrap();
+  let new_session_request_result =
+      req.get::<bodyparser::Struct<NewSessionRequest>>();
+
+  let new_session_request_option = match new_session_request_result {
+      Ok(option) => option,
+      Err(error) => return Ok(
+          Response::with(
+              (status::BadRequest,
+               format!("Unable to parse request: {}", error))))
+  };
+
+  let new_session_request = match new_session_request_option {
+      Some(request) => request,
+      None => return Ok(
+          Response::with(
+              (status::BadRequest,
+               "No Content-Type header provided")))
+  };
 
   let user = match authenticate_user(&new_session_request) {
     Some(user) => user,
