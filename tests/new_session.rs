@@ -21,9 +21,11 @@ fn setup() -> Context {
   Context {server: server}
 }
 
-fn teardown(context: &mut Context) {
-  context.server.kill()
-      .unwrap_or_else(|msg| panic!("Failed to shut down bulkhead server: {}", msg));
+impl Drop for Context {
+    fn drop(&mut self) {
+        self.server.kill()
+            .unwrap_or_else(|msg| panic!("Failed to shut down bulkhead server: {}", msg));
+    }
 }
 
 fn read_to_string(mut r: Response) -> io::Result<String> {
@@ -45,6 +47,4 @@ fn new_session_test() {
 
   assert_eq!(response.status, hyper::Ok);
   assert_eq!(read_to_string(response).unwrap(), r#"{"session":{"id":1}}"#);
-
-  teardown(&mut ctx);
 }
