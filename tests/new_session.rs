@@ -3,9 +3,8 @@ extern crate hyper;
 mod support;
 
 use hyper::client::Client;
-use hyper::client::response::Response;
 use hyper::header::ContentType;
-use support::{setup, read_to_string};
+use support::{setup, body};
 
 #[test]
 fn new_session_test() {
@@ -20,7 +19,7 @@ fn new_session_test() {
         .unwrap();
 
     assert_eq!(response.status, hyper::Ok);
-    assert_eq!(read_to_string(response).unwrap(), r#"{"session":{"id":1}}"#);
+    assert_eq!(body(response), r#"{"session":{"id":1}}"#);
 }
 
 #[test]
