@@ -9,14 +9,14 @@ use std::thread::sleep_ms;
 static START: Once = ONCE_INIT;
 
 pub fn setup() {
-  START.call_once(|| {
-    let server = Command::new("target/debug/bulkhead")
-        .spawn()
-        .unwrap_or_else(|msg| panic!("Failed to launch bulkhead server: {}", msg));
+    START.call_once(|| {
+        let server = Command::new("target/debug/bulkhead")
+            .spawn()
+            .unwrap_or_else(|msg| panic!("Failed to launch bulkhead server: {}", msg));
 
-    sleep_ms(100);
-    println!("bulkhead server running...");
-  });
+        sleep_ms(100);
+        println!("bulkhead server running...");
+    });
 }
 
 pub fn read_to_string(mut r: Response) -> io::Result<String> {

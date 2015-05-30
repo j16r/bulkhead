@@ -7,13 +7,13 @@ use support::setup;
 
 #[test]
 fn invalid_route_test() {
-  setup();
+    setup();
 
-  let mut client = Client::new();
-  let response = client
-      .post("http://localtest.me:3000/fhbwgias")
-      .send()
-      .unwrap();
+    let mut client = Client::new();
+    let response = client
+        .post("http://localtest.me:3000/fhbwgias")
+        .send()
+        .unwrap();
 
-  assert_eq!(response.status, hyper::NotFound);
+    assert_eq!(response.status, hyper::NotFound);
 }
