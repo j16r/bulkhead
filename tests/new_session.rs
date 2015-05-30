@@ -9,7 +9,7 @@ use support::{setup, read_to_string};
 
 #[test]
 fn new_session_test() {
-  let _ = setup();
+  setup();
 
   let mut client = Client::new();
   let response = client
@@ -25,7 +25,7 @@ fn new_session_test() {
 
 #[test]
 fn invalid_request_body_syntax_test() {
-  let _ = setup();
+  setup();
 
   let mut client = Client::new();
   let response = client
@@ -40,7 +40,7 @@ fn invalid_request_body_syntax_test() {
 
 #[test]
 fn missing_content_type_header_test() {
-  let _ = setup();
+  setup();
 
   let mut client = Client::new();
   let response = client

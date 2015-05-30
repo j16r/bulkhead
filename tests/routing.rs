@@ -7,7 +7,7 @@ use support::setup;
 
 #[test]
 fn invalid_route_test() {
-  let _ = setup();
+  setup();
 
   let mut client = Client::new();
   let response = client
