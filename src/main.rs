@@ -1,21 +1,26 @@
 extern crate iron;
 extern crate postgres;
+extern crate r2d2;
+extern crate r2d2_postgres;
 extern crate router;
 extern crate rustc_serialize;
 extern crate time;
 
-use iron::prelude::*;
-use router::Router;
-
 mod db;
 mod sessions;
 
+use db::DbPool;
+use iron::prelude::*;
+use router::Router;
+
 fn main() {
-    let db = db::connect();
-    db::migrate(&db);
+    let db_pool_middleware = DbPool::new();
+
+    let mut session_handler = Chain::new(sessions::create);
+    session_handler.link_before(db_pool_middleware);
 
     let mut router = Router::new();
-    router.post("/sessions", sessions::create);
+    router.post("/sessions", session_handler);
 
     Iron::new(router)
         .http("0.0.0.0:3000")

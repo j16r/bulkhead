@@ -8,6 +8,8 @@ authors = ["John Barker <jebarker@gmail.com>"]
 
 hyper = "*"
 iron = "*"
+r2d2 = "*"
+r2d2_postgres = "*"
 router = "*"
 rustc-serialize = "*"
 time = "*"

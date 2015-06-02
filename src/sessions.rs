@@ -4,8 +4,7 @@ use iron::prelude::*;
 use iron::status;
 use rustc_serialize::json;
 use time::Timespec;
-
-use db;
+use db::{connection, DbConnection};
 
 struct User {
     id: i32,
@@ -30,8 +29,7 @@ struct NewSessionRequest {
 }
 
 
-fn authenticate_user(new_session_request : &NewSessionRequest) -> Option<User> {
-    let db = db::connect();
+fn authenticate_user(db: &DbConnection, new_session_request : &NewSessionRequest) -> Option<User> {
     let stmt = db.prepare("SELECT id, name, created_at
                            FROM users
                            WHERE name = $1").unwrap();
@@ -45,8 +43,7 @@ fn authenticate_user(new_session_request : &NewSessionRequest) -> Option<User> {
     None
 }
 
-fn create_session(user: &User) -> Option<Session> {
-    let db = db::connect();
+fn create_session(db: &DbConnection, user: &User) -> Option<Session> {
     db.execute("INSERT INTO sessions (user_id, created_at)
                 VALUES($1, now())",
                 &[&user.id]).ok();
@@ -61,9 +58,10 @@ fn create_session(user: &User) -> Option<Session> {
     None
 }
 
-pub fn create(req: &mut Request) -> IronResult<Response> {
+pub fn create(request: &mut Request) -> IronResult<Response> {
     let new_session_request_result =
-        req.get::<bodyparser::Struct<NewSessionRequest>>();
+        request.get::<bodyparser::Struct<NewSessionRequest>>();
+    let db = connection(request);
 
     let new_session_request_option = match new_session_request_result {
         Ok(option) => option,
@@ -81,14 +79,14 @@ pub fn create(req: &mut Request) -> IronResult<Response> {
                  "No Content-Type header provided")))
     };
 
-    let user = match authenticate_user(&new_session_request) {
+    let user = match authenticate_user(&db, &new_session_request) {
         Some(user) => user,
         None => return Ok(
             Response::with(status::Unauthorized))
     };
 
     let response = json::encode(
-        &SessionResponse{session: create_session(&user).unwrap()})
+        &SessionResponse{session: create_session(&db, &user).unwrap()})
         .unwrap();
     Ok(Response::with((status::Ok, response)))
 }
