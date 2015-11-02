@@ -14,7 +14,7 @@ use iron::prelude::*;
 use router::Router;
 
 fn main() {
-    let db_pool_middleware = DbPool::new();
+    let db_pool_middleware = DbPool::new().unwrap();
 
     let mut session_handler = Chain::new(sessions::create);
     session_handler.link_before(db_pool_middleware);

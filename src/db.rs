@@ -2,26 +2,25 @@ use iron::BeforeMiddleware;
 use iron::prelude::*;
 use iron::typemap::Key;
 use postgres::SslMode;
-use r2d2::{Config, Pool, LoggingErrorHandler, PooledConnection};
+use r2d2::{Config, Pool, LoggingErrorHandler, PooledConnection, InitializationError};
 use r2d2_postgres::{PostgresConnectionManager};
-use std::default::Default;
-use std::sync::Arc;
 
 pub struct DbPool {
     pool: Pool<PostgresConnectionManager>
 }
 
 impl DbPool {
-    pub fn new() -> DbPool {
+    pub fn new() -> Result<DbPool, InitializationError> {
         let config = Config::builder()
             .error_handler(Box::new(LoggingErrorHandler))
             .build();
         let manager = PostgresConnectionManager::new("postgres://bulkhead@localhost",
                                                      SslMode::None)
             .unwrap();
-        let pool = Pool::new(config, manager).unwrap();
-
-        DbPool {pool: pool}
+        let pool = try!(Pool::new(config, manager));
+        let db_pool = DbPool {pool: pool};
+        db_pool.migrate();
+        Ok(db_pool)
     }
 
     fn migrate(&self) {
