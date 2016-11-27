@@ -2,9 +2,9 @@ extern crate bodyparser;
 
 use iron::prelude::*;
 use iron::status;
-use rustc_serialize::json;
 use time::Timespec;
 use db::{connection, DbConnection};
+use serde_json::to_string;
 
 struct User {
     id: i32,
@@ -12,17 +12,17 @@ struct User {
     created_at: Timespec
 }
 
-#[derive(RustcDecodable, RustcEncodable)]
+#[derive(Deserialize, Serialize)]
 pub struct Session  {
     id: i32
 }
 
-#[derive(RustcDecodable, RustcEncodable)]
+#[derive(Deserialize, Serialize)]
 pub struct SessionResponse {
     session: Session
 }
 
-#[derive(RustcDecodable, Clone, Debug)]
+#[derive(Deserialize, Clone, Debug)]
 struct NewSessionRequest {
     username: String,
     password: String
@@ -33,7 +33,7 @@ fn authenticate_user(db: &DbConnection, new_session_request : &NewSessionRequest
     let stmt = db.prepare("SELECT id, name, created_at
                            FROM users
                            WHERE name = $1").unwrap();
-    for row in stmt.query(&[&new_session_request.username]).unwrap() {
+    for row in &stmt.query(&[&new_session_request.username]).unwrap() {
         return Some(User {
             id: row.get(0),
             name: row.get(1),
@@ -50,7 +50,7 @@ fn create_session(db: &DbConnection, user: &User) -> Option<Session> {
     let stmt = db.prepare("SELECT id
                            FROM sessions
                            WHERE id = lastval()").unwrap();
-    for row in stmt.query(&[]).unwrap() {
+    for row in &stmt.query(&[]).unwrap() {
         return Some(Session {
             id: row.get(0),
         })
@@ -85,7 +85,7 @@ pub fn create(request: &mut Request) -> IronResult<Response> {
             Response::with(status::Unauthorized))
     };
 
-    let response = json::encode(
+    let response = to_string(
         &SessionResponse{session: create_session(&db, &user).unwrap()})
         .unwrap();
     Ok(Response::with((status::Ok, response)))

@@ -1,9 +1,14 @@
+#![feature(proc_macro)]
+
+#[macro_use]
+extern crate serde_derive;
+
 extern crate iron;
 extern crate postgres;
 extern crate r2d2;
 extern crate r2d2_postgres;
 extern crate router;
-extern crate rustc_serialize;
+extern crate serde_json;
 extern crate time;
 
 mod db;
@@ -20,7 +25,7 @@ fn main() {
     session_handler.link_before(db_pool_middleware);
 
     let mut router = Router::new();
-    router.post("/sessions", session_handler);
+    router.post("/sessions", session_handler, "post");
 
     Iron::new(router)
         .http("0.0.0.0:3000")
