@@ -12,9 +12,9 @@ r2d2 = "*"
 r2d2_postgres = "*"
 router = "*"
 time = "*"
-serde = "0.8"
-serde_derive = "0.8"
-serde_json = "0.8"
+serde = "0.9"
+serde_derive = "0.9"
+serde_json = "0.9"
 
 [dependencies.postgres]
 
