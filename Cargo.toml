@@ -6,7 +6,10 @@ authors = ["John Barker <jebarker@gmail.com>"]
 
 [dependencies]
 
-postgres = "*"
+bodyparser = "*"
 hyper = "*"
 iron = "*"
+postgres = "*"
 router = "*"
+rustc-serialize = "*"
+time = "*"

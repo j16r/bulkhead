@@ -1,24 +1,25 @@
 extern crate iron;
 extern crate router;
+extern crate bodyparser;
 extern crate serialize;
 extern crate postgres;
 extern crate time;
+extern crate rustc_serialize;
 
 use serialize::json;
 use iron::{Iron, IronResult, Request, Response};
 use iron::modifier::Set;
-use iron::response::modifiers::{Status, Body};
 use iron::status;
 use router::Router;
 use postgres::{Connection, SslMode};
 use time::Timespec;
 
-#[deriving(Decodable, Encodable)]
+#[derive(Decodable, Encodable)]
 pub struct Session  {
   id: i32
 }
 
-#[deriving(Decodable, Encodable)]
+#[derive(Decodable, Encodable)]
 pub struct SessionResponse {
   session: Session
 }
@@ -50,7 +51,7 @@ struct User {
   created_at: Timespec
 }
 
-#[deriving(Decodable)]
+#[derive(Decodable)]
 struct NewSessionRequest {
   username: String,
   password: String
@@ -64,9 +65,9 @@ fn authenticate_user(new_session_request : &NewSessionRequest) -> Option<User> {
                          WHERE name = $1").unwrap();
   for row in stmt.query(&[&new_session_request.username]).unwrap() {
     return Some(User {
-      id: row.get(0u),
-      name: row.get(1u),
-      created_at: row.get(2u)
+      id: row.get(0),
+      name: row.get(1),
+      created_at: row.get(2)
     })
   }
   None
@@ -83,27 +84,23 @@ fn create_session(user: &User) -> Option<Session> {
                          WHERE id = lastval()").unwrap();
   for row in stmt.query(&[]).unwrap() {
     return Some(Session {
-      id: row.get(0u),
+      id: row.get(0),
     })
   }
   None
 }
 
 fn new_session_handler(req: &mut Request) -> IronResult<Response> {
-  let new_session_request : NewSessionRequest = json::decode(req.body.to_string().as_slice()).unwrap();
+  let new_session_request = req.get::<BodyParser<NewSessionRequest>>().unwrap();
 
   let user = match authenticate_user(&new_session_request) {
     Some(user) => user,
     None => return Ok(
-        Response::new()
-            .set(Status(status::Unauthorized))
-            .set(Body("Unauthorized!")))
+        Response::with((status::Unauthorized, "Unauthorized!")))
   };
 
   let response = SessionResponse{session: create_session(&user).unwrap()};
-  Ok(Response::new()
-     .set(Status(status::Ok))
-     .set(Body(json::encode(&response))))
+  Ok(Response::with((status::Ok, json::encode(&response))))
 }
 
 fn main() {
@@ -113,9 +110,6 @@ fn main() {
   let mut router = Router::new();
   router.post("/sessions", new_session_handler);
 
-  Iron::new(router)
-      .listen("0.0.0.0:3000")
-      .unwrap_or_else(|error| panic!("Failed to listen {}", error));
-
+  Iron::new(router).listen("0:3000").unwrap();
   println!("Bulkhead ready.");
 }
